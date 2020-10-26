@@ -1,10 +1,8 @@
 const tutorial_canvas = document.getElementById("tutorial");
 const tutorial_canvas_context = tutorial_canvas.getContext('2d');
-let totalsaws = 110
 const restart = document.getElementById("start");
 const wallbtn = document.getElementById("wall");
 const rotator = document.getElementById("rot");
-let whackout = -1
 let runanyway = -1
 restart.onclick = flip
 wallbtn.onclick = wallflip
