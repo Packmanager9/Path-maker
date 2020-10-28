@@ -755,13 +755,14 @@ window.setInterval(function () {
         forcegrid[t].body.draw()
         // forcegrid[t].bigbody.cleardraw()
     }
+
+    fitnessdot.draw()
+
     for (let t = 0; t < gravs.length; t++) {
         gravs[t].draw()
         gravsb[t].draw()
         gravso[t].draw()
     }
-    fitnessdot.draw()
-
     counter++
 
     if (counter > gen) {
