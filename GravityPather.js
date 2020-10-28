@@ -4,11 +4,31 @@ let totalsaws = 110
 const restart = document.getElementById("start");
 const wallbtn = document.getElementById("wall");
 const rotator = document.getElementById("rot");
+const mutmag = document.getElementById("mutmag");
+const gridchanger = document.getElementById("grid");
+const mutvol = document.getElementById("mutvol");
 let whackout = -1
+
+let gridhold = 0
 
 let runanyway = -1
 restart.onclick = flip
 wallbtn.onclick = wallflip
+gridchanger.onclick = changegrid
+
+function changegrid() {
+    gridhold++
+    gridhold %= 3
+    if(gridhold == 0){
+        gridchanger.innerText = "Showing blue's dominant phenotype"
+    }
+    if(gridhold == 1){
+        gridchanger.innerText = "Showing red's dominant phenotype"
+    }
+    if(gridhold == 2){
+        gridchanger.innerText = "Showing orange's dominant phenotype"
+    }
+}
 
 function flip() {
     gravs = []
@@ -417,8 +437,8 @@ class Bosscircle {
         tutorial_canvas_context.lineWidth = 0
         tutorial_canvas_context.strokeStyle = this.color
         tutorial_canvas_context.beginPath();
-        if (this.radius < 1) {
-            this.radius = 1
+        if (this.radius < .1) {
+            this.radius = .1
         }
         tutorial_canvas_context.arc(this.x, this.y, this.radius, 0, (Math.PI * 2), true)
         tutorial_canvas_context.fill()
@@ -437,6 +457,8 @@ class Bosscircle {
         tutorial_canvas_context.stroke();
     }
     move() {
+        this.xmom*=.99
+        this.ymom*=.99
         this.x += this.xmom
         this.y += this.ymom
         if (this.x + this.radius > tutorial_canvas.width) {
@@ -467,6 +489,7 @@ class Bosscircle {
                 this.marked = 1
             }
         }
+        
     }
     isPointInside(point) {
         let link = new Line(this.x, this.y, point.x, point.y, "red", 1)
@@ -495,7 +518,7 @@ class Node {
         this.body = new Bosscircle(xeet, yeet, 3, "black")
         this.x = xeet
         this.y = yeet
-        this.bigbody = new Bosscircle(xeet, yeet, 100, "black")
+        this.bigbody = new Bosscircle(xeet, yeet, 142, "black")
         if (xeet == tutorial_canvas.width - 50) {
             yeet += 50
             xeet = 0
@@ -530,13 +553,13 @@ class Gravatoli {
     }
     mutate() {
         for (let t = 0; t < this.match.length; t++) {
-            if (Math.random() < .014) {
-                this.match[t] += ((Math.random() - .5) * .0017)
+            if (Math.random() < .007 * mutvol.value) {
+                this.match[t] += ((Math.random() - .5) * (.0004 * mutmag.value))
             }
-            if (Math.random() < .0003) {
+            if (Math.random() < .00007 * mutvol.value) {
                 this.match[t] *= -1
             }
-            if (Math.random() < .0003) {
+            if (Math.random() < .00007 * mutvol.value) {
                 this.match[t] = 0
             }
         }
@@ -544,10 +567,10 @@ class Gravatoli {
     }
     mutateAngles() {
         for (let t = 0; t < this.angles.length; t++) {
-            if (Math.random() < .01) {
-                this.angles[t] += ((Math.random() - .5) * .1)
+            if (Math.random() < .005 * mutvol.value) {
+                this.angles[t] += ((Math.random() - .5) * (.1 * mutmag.value))
             }
-            if (Math.random() < .0003) {
+            if (Math.random() < .0003 * mutvol.value) {
                 this.angles[t] += Math.PI
             }
         }
@@ -562,14 +585,43 @@ class Gravatoli {
         this.body.draw()
         for (let t = 0; t < forcegrid.length; t++) {
 
-            if (this.body.color == "blue") {
-                if (this.match[t] < 0) {
-                    forcegrid[t].body.color = "cyan"
-                } else {
-                    forcegrid[t].body.color = "magenta"
+            if (gridhold == 0) {
+                if(this == gravsb[0]){
+                    if (this.match[t] < 0) {
+                        forcegrid[t].body.color = "cyan"
+                    } else {
+                        forcegrid[t].body.color = "magenta"
+                    }
+                    forcegrid[t].body.radius = Math.abs(this.match[t] * 201)
+            }
+            } else if (gridhold == 1) {
+                if(this == gravs[0]){
+                    if (this.match[t] < 0) {
+                        forcegrid[t].body.color = "cyan"
+                    } else {
+                        forcegrid[t].body.color = "magenta"
+                    }
+                    forcegrid[t].body.radius = Math.abs(this.match[t] * 201)
+            }
+            } else {
+                if(this == gravso[0]){
+
+
+
+                    forcegrid[t].body.radius = Math.abs(this.match[t] * 201)
+
+
+                    if (this.match[t] < 0) {
+                        forcegrid[t].body.color = "cyan"
+                        let vector = new Line(forcegrid[t].x, forcegrid[t].y, forcegrid[t].x+(Math.cos(this.angles[t])*forcegrid[t].body.radius+5), forcegrid[t].y+(Math.sin(this.angles[t])*forcegrid[t].body.radius+5), "black", .5 )
+                        vector.draw()
+                    } else {
+                        forcegrid[t].body.color = "magenta"
+                        let vector = new Line(forcegrid[t].x, forcegrid[t].y, forcegrid[t].x+(Math.cos(this.angles[t]+Math.PI)*(forcegrid[t].body.radius+5)), forcegrid[t].y+(Math.sin(this.angles[t]+Math.PI)*(forcegrid[t].body.radius+5)), "black", .5 )
+                        vector.draw()
+                    }
                 }
             }
-            forcegrid[t].body.radius = Math.abs(this.match[t] * 1001)
             if (forcegrid[t].bigbody.isPointInside(this.body)) {
 
                 // const angleRadians = (Math.atan2(this.body.y - forcegrid[t].y , this.body.x - forcegrid[t].x));
@@ -583,17 +635,18 @@ class Gravatoli {
                     angleRadians = (Math.atan2(this.body.y - forcegrid[t].y, this.body.x - forcegrid[t].x));
                 }
 
+
                 // if(this.match[t] < 0){
                 //     angleRadians+=Math.PI
                 // }
 
                 // const angleRadians = (Math.atan2(this.body.y - forcegrid[t].y , this.body.x - forcegrid[t].x))+Math.PI;
-                let xdim 
+                let xdim
                 let ydim
-                if(this.body.color == "orange"){
-                 xdim = Math.cos(angleRadians+ this.angles[t])//*this.match[t]
-                 ydim = Math.sin(angleRadians+ this.angles[t])//*this.match[t]
-                }else{
+                if (this.body.color == "orange") {
+                    xdim = Math.cos(angleRadians + this.angles[t])//*this.match[t]
+                    ydim = Math.sin(angleRadians + this.angles[t])//*this.match[t]
+                } else {
                     xdim = Math.cos(angleRadians)//*this.match[t]
                     ydim = Math.sin(angleRadians)//*this.match[t]
                 }
@@ -739,8 +792,8 @@ window.setInterval(function () {
             // line.draw()
             if (fitnesscutoff > line.hypotenuse()) {
 
-            line.color = "red"
-            line.draw()
+                line.color = "red"
+                line.draw()
                 fitnesscutoff = line.hypotenuse()
                 cutindexo = t
             }
@@ -764,6 +817,11 @@ function gravRefresh() {
 
         let grab = new Gravatoli()
         grab.match = [...gravs[cutindex].match]
+
+        // for(let k = 0;k<t;k++){
+        //     grab.mutate()
+        // }
+        if(t!= 0){
         if (Math.random() < .93) {
             grab.mutate()
             if (Math.random() < .5) {
@@ -781,6 +839,7 @@ function gravRefresh() {
                 grab.mutate()
             }
         }
+    }
         grabs.push(grab)
     }
 
@@ -809,6 +868,11 @@ function gravbRefresh() {
         let grab = new Gravatoli()
         grab.body.color = "blue"
         grab.match = [...gravsb[cutindexb].match]
+
+        // for(let k = 0;k<t;k++){
+        //     grab.mutate()
+        // }
+        if(t!= 0){
         if (Math.random() < .93) {
             grab.mutate()
             if (Math.random() < .5) {
@@ -826,6 +890,7 @@ function gravbRefresh() {
                 grab.mutate()
             }
         }
+    }
         grabs.push(grab)
     }
 
@@ -844,27 +909,31 @@ function gravoRefresh() {
         grab.body.color = "orange"
         grab.match = [...gravso[cutindexo].match]
         grab.angles = [...gravso[cutindexo].angles]
-        if (Math.random() < .93) {
-            grab.mutate()
-            if (Math.random() < .5) {
-                grab.mutate()
-            }
-            if (Math.random() < .25) {
-                grab.mutate()
-            }
-            if (Math.random() < .005) {
-                grab.mutate()
-                grab.mutate()
-                grab.mutate()
-                grab.mutate()
-                grab.mutate()
-                grab.mutate()
-            }
-        }
 
-        if(Math.random() <.3){
-
-            grab.mutateAngles()
+        // for(let k = 0;k<t;k++){
+        //     grab.mutate()
+        // }
+        if(t!= 0){
+            if (Math.random() < .93) {
+                grab.mutate()
+                if (Math.random() < .5) {
+                    grab.mutate()
+                }
+                if (Math.random() < .25) {
+                    grab.mutate()
+                }
+                if (Math.random() < .005) {
+                    grab.mutate()
+                    grab.mutate()
+                    grab.mutate()
+                    grab.mutate()
+                    grab.mutate()
+                    grab.mutate()
+                }
+            }
+            if (Math.random() < .3) {
+                grab.mutateAngles()
+            }
         }
         grabs.push(grab)
     }
